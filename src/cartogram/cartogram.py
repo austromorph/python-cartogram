@@ -9,6 +9,7 @@ import math
 
 import geopandas
 import numpy
+import pandas
 import shapely
 
 
@@ -44,15 +45,6 @@ class Cartogram(geopandas.GeoDataFrame):
         ---------
         input_polygon_geodataframe : geopandas.GeoDataFrame
         """
-        # TODO: add sanity checks for geometries:
-        #  - all valid
-        #  - no NULL values
-        #  - all polygon or multipolygon
-        # and also for the cartogram_attribute:
-        #  - No NULLs
-        #  - numeric
-        #  - set all 0 to 0.00000001 or so
-
         geopandas.GeoDataFrame.__init__(
             self,
             input_polygon_geodataframe.copy(),
@@ -61,6 +53,9 @@ class Cartogram(geopandas.GeoDataFrame):
         self.cartogram_attribute = cartogram_attribute
         self.max_iterations = max_iterations
         self.max_average_error = max_average_error
+
+        self._check_geodata()
+        self._check_cartogram_attribute()
 
         self._transform()
 
@@ -76,6 +71,20 @@ class Cartogram(geopandas.GeoDataFrame):
             self[[self.cartogram_attribute, "geometry"]].apply(self._feature_error, axis=1).mean()
             - 1
         )
+
+    def _check_cartogram_attribute(self):
+        cartogram_attribute_series = self[self.cartogram_attribute]
+        if not pandas.api.types.is_numeric_dtype(cartogram_attribute_series):
+            raise ValueError("Cartogram attribute is not numeric")
+        if cartogram_attribute_series.hasnans:
+            raise ValueError("Cartogram attribute contains NULL values.")
+
+    def _check_geodata(self):
+        geometry_types = self.geometry.geom_type.unique().tolist()
+        for geometry_type in geometry_types:
+            if geometry_type not in ["MultiPolygon", "Polygon"]:
+                raise ValueError(f"Only POLYGON or MULTIPOLYGON geometries supported, found {geometry_type}.")
+        self._input_is_multipolygon = ("MultiPolygon" in geometry_types)
 
     def _cartogram_feature(self, feature):
         """
@@ -151,8 +160,11 @@ class Cartogram(geopandas.GeoDataFrame):
 
     def _transform(self):
         """Transform the data set into a cartogram."""
-        self.iteration = 0
+        # TODO: - set all 0 to 0.00000001 or so (but not in output data!)
         self.geometry = self.geometry.buffer(0.0)
+
+        self.iteration = 0
+
         while (
             self.iteration < self.max_iterations
             and self.average_error > self.max_average_error
@@ -161,6 +173,7 @@ class Cartogram(geopandas.GeoDataFrame):
             self._invalidate_cached_properties()
             print(f"{self.average_error:0.5f} error left after {self.iteration:d} iteration(s)")
             self.iteration += 1
+
         self.geometry = self.geometry.buffer(0.0)
 
     def _transform_geometry(self, geometry):
@@ -205,19 +218,6 @@ class Cartogram(geopandas.GeoDataFrame):
     def total_area(self):
         """Total area of all polygons"""
         return self.geometry.area.sum()
-
-    # @functools.cached_property
-    # def total_error(self):
-    #     return self[[self.cartogram_attribute, "geometry"]].apply(self._feature_error).sum()
-
-    @functools.cached_property
-    def total_number_of_vertices(self):
-        return (
-            self.geometry
-            .apply(shapely.get_coordinates)
-            .apply(len)
-            .sum()
-        )
 
     @functools.cached_property
     def total_value(self):
