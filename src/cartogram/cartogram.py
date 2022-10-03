@@ -8,12 +8,16 @@ import functools
 import math
 
 import geopandas
+import joblib
 import numpy
 import pandas
 import shapely
 
 
 __all__ = ["Cartogram"]
+
+
+NUM_THREADS = -1
 
 
 CartogramFeature = collections.namedtuple(
@@ -164,28 +168,49 @@ class Cartogram(geopandas.GeoDataFrame):
         self.geometry = self.geometry.buffer(0.0)
 
         self.iteration = 0
-
         while (
             self.iteration < self.max_iterations
             and self.average_error > self.max_average_error
         ):
-            self.geometry = self.geometry.apply(self._transform_geometry)
+            # self.geometry = self.geometry.apply(functools.partial(self._transform_geometry, features=self._cartogram_features))
+            with joblib.Parallel(
+                verbose=10,
+                n_jobs=NUM_THREADS,
+                batch_size=10,
+            ) as parallel:
+                self.geometry = parallel(
+                    joblib.delayed(
+                        functools.partial(
+                            self._transform_geometry,
+                            features=self._cartogram_features,
+                            reduction_factor=self._reduction_factor,
+                        )
+                    )(geometry)
+                    for geometry in self.geometry
+                )
             self._invalidate_cached_properties()
-            print(f"{self.average_error:0.5f} error left after {self.iteration:d} iteration(s)")
             self.iteration += 1
+            print(f"{self.average_error:0.5f} error left after {self.iteration:d} iteration(s)")
 
         self.geometry = self.geometry.buffer(0.0)
 
-    def _transform_geometry(self, geometry):
-        return shapely.transform(geometry, self._transform_vertices)
+    def _transform_geometry(self, geometry, features, reduction_factor):
+        return shapely.transform(
+            geometry,
+            functools.partial(
+                self._transform_vertices,
+                features=features,
+                reduction_factor=reduction_factor,
+            )
+        )
 
-    def _transform_vertex(self, vertex):
+    def _transform_vertex(self, vertex, features, reduction_factor):
         x0, y0 = vertex
 
         x = x0
         y = y0
 
-        for feature in self._cartogram_features:
+        for feature in features:
             if feature.mass:
                 cx = feature.cx
                 cy = feature.cy
@@ -198,18 +223,18 @@ class Cartogram(geopandas.GeoDataFrame):
                     # force on points closer to the centroid
                     dr = distance / feature.radius
                     force = feature.mass * (dr ** 2) * (4 - (3 * dr))
-                force *= self._reduction_factor / distance
+                force *= reduction_factor / distance
 
                 x += (x0 - cx) * force
                 y += (y0 - cy) * force
 
-        #print(f"    moved vertex by {x0-x}, {y0-y}")
+        # print(f"    moved vertex by {x0-x}, {y0-y}")
         return [x, y]
 
-    def _transform_vertices(self, vertices):
+    def _transform_vertices(self, vertices, features, reduction_factor):
         return numpy.asarray(
             [
-                self._transform_vertex(vertex)
+                self._transform_vertex(vertex, features, reduction_factor)
                 for vertex in vertices
             ]
         )
