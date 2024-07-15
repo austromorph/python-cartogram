@@ -68,7 +68,6 @@ myst_heading_anchors = 3  # add #id to h1-h3
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-#html_logo = "_static/images/cartogram3-qgis-icon.svg"
 html_favicon = "_static/images/favicon.png"
 html_title = "python-cartogram"
 html_short_title = "python-cartogram"
