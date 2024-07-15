@@ -19,7 +19,9 @@ class TestCartogram:
             (
                 pytest_lazy_fixtures.lf("austria_nuts2_population_geodataframe"),
                 pytest_lazy_fixtures.lf("austria_nuts2_population_column_name"),
-                pytest_lazy_fixtures.lf("austria_nuts2_population_cartogram_geodataframe"),
+                pytest_lazy_fixtures.lf(
+                    "austria_nuts2_population_cartogram_geodataframe"
+                ),
             )
         ],
     )
