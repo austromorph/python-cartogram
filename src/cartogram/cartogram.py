@@ -27,7 +27,7 @@ CartogramFeature = collections.namedtuple(
         "cy",
         "mass",
         "radius",
-    ]
+    ],
 )
 
 
@@ -40,23 +40,38 @@ class Cartogram(geopandas.GeoDataFrame):
         cartogram_attribute,
         max_iterations=10,
         max_average_error=0.1,
+        verbose=False,
         **kwargs,
     ):
         """
         Compute continuous cartograms.
 
+        This is an implementation of the Dougenik et al. (1985) algorithm to
+        approximate areal cartograms from numeric data columns.
+        `cartogram.Cartogram` inherits from `geopandas.GeoDataFrame`, which
+        means that all methods and attributes implemented there are available in
+        the result object.
+
         Arguments
         ---------
         input_polygon_geodataframe : geopandas.GeoDataFrame
+            The input polygon data set
+        cartogram_attribute : str | pandas.Series
+            Which numeric attribute to use to distort the polygon data
+        max_iterations : int
+            How often to iterate the computation (default: 10)
+        max_average_error : float
+            Stop earlier than `max_iterations` if the average areal error
+            reaches below `max_average_error` (a ratio between the target set by
+            the attribute values and the actual area)
         """
         geopandas.GeoDataFrame.__init__(
-            self,
-            input_polygon_geodataframe.copy(),
-            **kwargs
+            self, input_polygon_geodataframe.copy(), **kwargs
         )
         self.cartogram_attribute = cartogram_attribute
         self.max_iterations = max_iterations
         self.max_average_error = max_average_error
+        self.verbose = verbose
 
         self._check_geodata()
         self._check_cartogram_attribute()
@@ -72,12 +87,17 @@ class Cartogram(geopandas.GeoDataFrame):
     def average_error(self):
         """The error between the current geometries and a perfect cartogram."""
         return (
-            self[[self.cartogram_attribute, "geometry"]].apply(self._feature_error, axis=1).mean()
+            self[[self.cartogram_attribute, "geometry"]]
+            .apply(self._feature_error, axis=1)
+            .mean()
             - 1
         )
 
     def _check_cartogram_attribute(self):
-        cartogram_attribute_series = self[self.cartogram_attribute]
+        if isinstance(self.cartogram_attribute, pandas.Series):
+            cartogram_attribute_series = self.cartogram_attribute
+        else:
+            cartogram_attribute_series = self[self.cartogram_attribute]
         if not pandas.api.types.is_numeric_dtype(cartogram_attribute_series):
             raise ValueError("Cartogram attribute is not numeric")
         if cartogram_attribute_series.hasnans:
@@ -87,8 +107,10 @@ class Cartogram(geopandas.GeoDataFrame):
         geometry_types = self.geometry.geom_type.unique().tolist()
         for geometry_type in geometry_types:
             if geometry_type not in ["MultiPolygon", "Polygon"]:
-                raise ValueError(f"Only POLYGON or MULTIPOLYGON geometries supported, found {geometry_type}.")
-        self._input_is_multipolygon = ("MultiPolygon" in geometry_types)
+                raise ValueError(
+                    f"Only POLYGON or MULTIPOLYGON geometries supported, found {geometry_type}."
+                )
+        self._input_is_multipolygon = "MultiPolygon" in geometry_types
 
     def _cartogram_feature(self, feature):
         """
@@ -108,18 +130,17 @@ class Cartogram(geopandas.GeoDataFrame):
         else:
             mass = math.sqrt(target_area / math.pi) - radius
 
-        cartogram_feature = CartogramFeature(
-            centroid.x,
-            centroid.y,
-            mass,
-            radius
-        )
+        cartogram_feature = CartogramFeature(centroid.x, centroid.y, mass, radius)
         return cartogram_feature
 
     @functools.cached_property
     def _cartogram_features(self):
         """List the gravitationally active properties of all polygons."""
-        return self[[self.cartogram_attribute, "geometry"]].apply(self._cartogram_feature, axis=1).to_list()
+        return (
+            self[[self.cartogram_attribute, "geometry"]]
+            .apply(self._cartogram_feature, axis=1)
+            .to_list()
+        )
 
     def _feature_error(self, feature):
         """Compute the error of one feature."""
@@ -174,9 +195,8 @@ class Cartogram(geopandas.GeoDataFrame):
         ):
             # self.geometry = self.geometry.apply(functools.partial(self._transform_geometry, features=self._cartogram_features))
             with joblib.Parallel(
-                verbose=10,
+                verbose=(self.verbose * 10),
                 n_jobs=NUM_THREADS,
-                batch_size=10,
             ) as parallel:
                 self.geometry = parallel(
                     joblib.delayed(
@@ -190,7 +210,10 @@ class Cartogram(geopandas.GeoDataFrame):
                 )
             self._invalidate_cached_properties()
             self.iteration += 1
-            print(f"{self.average_error:0.5f} error left after {self.iteration:d} iteration(s)")
+            if self.verbose:
+                print(
+                    f"{self.average_error:0.5f} error left after {self.iteration:d} iteration(s)"
+                )
 
         self.geometry = self.geometry.buffer(0.0)
 
@@ -201,7 +224,7 @@ class Cartogram(geopandas.GeoDataFrame):
                 self._transform_vertices,
                 features=features,
                 reduction_factor=reduction_factor,
-            )
+            ),
         )
 
     def _transform_vertex(self, vertex, features, reduction_factor):
@@ -222,7 +245,7 @@ class Cartogram(geopandas.GeoDataFrame):
                 else:
                     # force on points closer to the centroid
                     dr = distance / feature.radius
-                    force = feature.mass * (dr ** 2) * (4 - (3 * dr))
+                    force = feature.mass * (dr**2) * (4 - (3 * dr))
                 force *= reduction_factor / distance
 
                 x += (x0 - cx) * force

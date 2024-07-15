@@ -1,28 +1,52 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools>=50.0.0", "wheel"]
+requires = ["setuptools>=61.0.0", "wheel"]
 
 [project]
 name = "cartogram"
-dynamic = [
-    "authors",
-    "classifiers",
-    "description",
-    "license",
-    "readme",
-    "requires-python",
-    "urls",
-    "version",
+description = "Compute continous cartograms (anamorphic maps)"
+readme = "README.md"
+
+authors = [
+    { name = "Christoph Fink", email = "christoph.fink@christophfink.com" }
 ]
 
+dependencies = [
+    "geopandas",
+    "joblib",
+    "numpy",
+    "pandas",
+    "shapely"
+]
+requires-python = ">=3.9"
+
+classifiers = [ 
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent"
+]
+keywords = ["cartography", "geodata", "geoinformation", "visualisation"]
+license = {text = "GPL-3.0-or-later"}
+
+dynamic = ["version"]
+
 [project.optional-dependencies]
-tests = ["pytest", "pytest-cov", "pytest-lazy-fixture"]
+docs = ["GitPython", "nbsphinx", "sphinx", "sphinx-book-theme", "sphinx-design", "sphinx-contrib-images"]
+tests = ["pytest", "pytest-asyncio", "pytest-lazy-fixtures"]
+
+[project.urls]
+Documentation = "https://python-cartogram.readthedocs.org/"
+Repository = "https://github.com/austromorph/python-cartogram"
+"Change log" =  "https://github.com/austromorph/python-cartogram/blob/main/CHANGELOG.md"
+"Bug tracker" = "https://github.com/austromorph/python-cartogram/issues"
+
+[tool.coverage.run]
+omit = ["tests/*", ".virtualenv/**/*"]
 
 [tool.pytest.ini_options]
-addopts = "-p no:faulthandler -r s --cov=./src/cartogram --cov-append --cov-report term-missing --cov-report xml"
-pythonpath = ["src"]
+#addopts = "-p no:faulthandler -r s"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 
-[tool.coverage.run]
-omit = ["tests/*"]
+[tool.setuptools.dynamic]
+version = {attr = "cartogram.__version__"}
