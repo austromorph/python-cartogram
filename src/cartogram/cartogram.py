@@ -63,7 +63,7 @@ class Cartogram(geopandas.GeoDataFrame):
         max_average_error : float
             Stop earlier than `max_iterations` if the average areal error
             reaches below `max_average_error` (a ratio between the target set by
-            the attribute values and the actual area)
+            the attribute values and the actual area) (default: 0.1)
         """
         geopandas.GeoDataFrame.__init__(
             self, input_polygon_geodataframe.copy(), **kwargs
