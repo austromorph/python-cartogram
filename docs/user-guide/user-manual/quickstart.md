@@ -26,7 +26,6 @@ self
 data-requirements
 :::
 
-
 % ```{code-cell}
 % :tags: [remove-input, remove-output]
 % 
