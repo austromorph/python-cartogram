@@ -34,7 +34,6 @@ class TestCartogram:
         geopandas.testing.assert_geodataframe_equal(
             cartogram.Cartogram(input_geodataframe, column_name),
             expected_result_geodataframe,
-
             check_like=True,
             check_less_precise=True,
             normalize=True,
