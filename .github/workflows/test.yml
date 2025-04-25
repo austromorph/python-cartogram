@@ -18,7 +18,7 @@ jobs:
     secrets: inherit
 
   test:
-    name: Run tests (${{ matrix.os }}, Python ${{ matrix.python_version }
+    name: Run tests (${{ matrix.os }}, Python ${{ matrix.python_version }}
     needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
