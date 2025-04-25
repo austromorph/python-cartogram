@@ -45,7 +45,6 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_design",
     "sphinxcontrib.bibtex",
-    "sphinxcontrib.images",
 ]
 
 templates_path = ["_templates"]
