@@ -48,7 +48,7 @@ omit = ["tests/*", ".virtualenv/**/*"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=cartogram --cov-report term-missing --cov-report xml"
-python_path = ["src"]
+pythonpath = ["src"]
 testpaths = ["tests"]
 
 [tool.setuptools.dynamic]
