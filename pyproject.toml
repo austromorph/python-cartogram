@@ -47,6 +47,7 @@ Repository = "https://github.com/austromorph/python-cartogram"
 omit = ["tests/*", ".virtualenv/**/*"]
 
 [tool.pytest.ini_options]
+addopts = "--cov=cartogram --cov-report term-missing --cov-report xml"
 python_path = ["src"]
 testpaths = ["tests"]
 
