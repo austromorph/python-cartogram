@@ -35,7 +35,7 @@ docs = ["folium", "GitPython", "jupyterlab_myst", "mapclassify", "matplotlib",
         "myst-nb", "nbsphinx", "pybtex-apa7-style", "sphinx", 
         "sphinx-book-theme", "sphinx-design", "sphinxcontrib-bibtex",
         "sphinxcontrib-images", "xyzservices"]
-tests = ["pytest", "pytest-lazy-fixtures"]
+tests = ["pytest", "pytest-cov", "pytest-lazy-fixtures"]
 
 [project.urls]
 Documentation = "https://python-cartogram.readthedocs.org/"
