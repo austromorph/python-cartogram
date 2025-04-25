@@ -1,3 +1,7 @@
+#!/bin/env python3
+
+"""Define how the documentation is compiled."""
+
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -41,7 +45,6 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_design",
     "sphinxcontrib.bibtex",
-    "sphinxcontrib.images",
 ]
 
 templates_path = ["_templates"]

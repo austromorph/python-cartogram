@@ -1,3 +1,7 @@
+- **1.0.0** (2025-04-25):
+    - migrated to PyPi Trusted Publishing
+    - included tests in source wheels
+
 - **0.0.2** (2024-07-15):
     - added documentation
 
