@@ -125,15 +125,19 @@ class TestCartogram:
         column_name,
     ):
         with pytest.raises(ValueError, match="Cartogram attribute is not numeric"):
-            _ = cartogram.Cartogram(input_geodataframe, column_name),
+            _ = (cartogram.Cartogram(input_geodataframe, column_name),)
 
     def test_cartogram_null_values(
         self,
         austria_nuts2_population_geodataframe,
         austria_nuts2_population_column_name,
     ):
-        austria_nuts2_population_geodataframe.at[1, austria_nuts2_population_column_name] = None
-        with pytest.raises(ValueError, match="Cartogram attribute contains NULL values"):
+        austria_nuts2_population_geodataframe.at[
+            1, austria_nuts2_population_column_name
+        ] = None
+        with pytest.raises(
+            ValueError, match="Cartogram attribute contains NULL values"
+        ):
             _ = cartogram.Cartogram(
                 austria_nuts2_population_geodataframe,
                 austria_nuts2_population_column_name,
@@ -145,7 +149,9 @@ class TestCartogram:
         austria_nuts2_population_column_name,
     ):
         austria_nuts2_population_geodataframe["geometry"] = shapely.Point()
-        with pytest.raises(ValueError, match="Only POLYGON or MULTIPOLYGON geometries supported"):
+        with pytest.raises(
+            ValueError, match="Only POLYGON or MULTIPOLYGON geometries supported"
+        ):
             _ = cartogram.Cartogram(
                 austria_nuts2_population_geodataframe,
                 austria_nuts2_population_column_name,
