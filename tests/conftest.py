@@ -22,6 +22,7 @@ AUSTRIA_NUTS2_POPULATION_CARTOGRAM = (
 )
 
 AUSTRIA_NUTS2_POPULATION_COLUMN_NAME = "pop20170101"
+AUSTRIA_NUTS2_NONNUMERIC_COLUMN_NAME = "nuts2"
 
 
 @pytest.fixture(scope="session")
@@ -40,3 +41,27 @@ def austria_nuts2_population_cartogram_geodataframe():
 def austria_nuts2_population_column_name():
     """Return the name of the cartogram column in the test data set."""
     yield AUSTRIA_NUTS2_POPULATION_COLUMN_NAME
+
+
+@pytest.fixture(scope="session")
+def austria_nuts2_population_column(
+    austria_nuts2_population_geodataframe,
+    austria_nuts2_population_column_name,
+):
+    """Return the cartogram column in the test data set as a pandas.Series."""
+    yield austria_nuts2_population_geodataframe[austria_nuts2_population_column_name]
+
+
+@pytest.fixture(scope="session")
+def austria_nuts2_nonnumeric_column_name():
+    """Return the name of a non-numeric column in the test data set."""
+    yield AUSTRIA_NUTS2_NONNUMERIC_COLUMN_NAME
+
+
+@pytest.fixture(scope="session")
+def austria_nuts2_nonnumeric_column(
+    austria_nuts2_population_geodataframe,
+    austria_nuts2_nonnumeric_column_name,
+):
+    """Return a non-numeric column in the test data set as a pandas.Series."""
+    yield austria_nuts2_population_geodataframe[austria_nuts2_nonnumeric_column_name]

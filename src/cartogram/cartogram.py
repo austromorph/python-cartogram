@@ -95,9 +95,8 @@ class Cartogram(geopandas.GeoDataFrame):
 
     def _check_cartogram_attribute(self):
         if isinstance(self.cartogram_attribute, pandas.Series):
-            cartogram_attribute_series = self.cartogram_attribute
-        else:
-            cartogram_attribute_series = self[self.cartogram_attribute]
+            self.cartogram_attribute = self.cartogram_attribute.name
+        cartogram_attribute_series = self[self.cartogram_attribute]
         if not pandas.api.types.is_numeric_dtype(cartogram_attribute_series):
             raise ValueError("Cartogram attribute is not numeric")
         if cartogram_attribute_series.hasnans:
@@ -152,7 +151,6 @@ class Cartogram(geopandas.GeoDataFrame):
         try:
             error = max(area, target_area) / min(area, target_area)
         except ZeroDivisionError:
-            print("ZeroDiv")
             error = 1.0
 
         return error
