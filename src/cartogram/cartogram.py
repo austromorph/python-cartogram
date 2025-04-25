@@ -264,7 +264,7 @@ class Cartogram(geopandas.GeoDataFrame):
 
     @functools.cached_property
     def total_area(self):
-        """Total area of all polygons"""
+        """Total area of all polygons."""
         return self.geometry.area.sum()
 
     @functools.cached_property
