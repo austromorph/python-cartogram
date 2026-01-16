@@ -34,9 +34,33 @@ CartogramFeature = collections.namedtuple(
 class Cartogram(geopandas.GeoDataFrame):
     """Compute continuous cartograms."""
 
+    _constructor = geopandas.GeoDataFrame
+
+    _constructor_sliced = pandas.Series
+
+    @classmethod
+    def _geodataframe_constructor_with_fallback(
+        cls, *args, **kwargs
+    ):
+        """
+        A flexible constructor for Cartogram.
+
+        It which checks whether or not arguments of the child class are used.
+        """
+        if "cartogram_attribute" in kwargs.keys():
+            df = cls(*args, **kwargs)
+        else:
+            df = geopandas.GeoDataFrame(*args, **kwargs)
+            geometry_cols_mask = df.dtypes == "geometry"
+            if len(geometry_cols_mask) == 0 or geometry_cols_mask.sum() == 0:
+                df = pandas.DataFrame(df)
+
+        return df
+
     def __init__(
         self,
         input_polygon_geodataframe,
+        /,
         cartogram_attribute,
         max_iterations=10,
         max_average_error=0.1,
