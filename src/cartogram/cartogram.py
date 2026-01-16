@@ -194,14 +194,6 @@ class Cartogram(geopandas.GeoDataFrame):
         """Invalidate properties that were cached as `functools.cached_property`."""
         # https://stackoverflow.com/a/68316608
         if not properties:
-            # # clear all as default
-            # properties = [
-            #     attribute
-            #     for attribute in self.__dict__.keys()
-            #     if isinstance(
-            #         getattr(self, attribute, None),
-            #         functools.cached_property)
-            # ]
             properties = [
                 attr
                 for attr in list(self.__dict__.keys())
@@ -228,12 +220,6 @@ class Cartogram(geopandas.GeoDataFrame):
             self.iteration < self.max_iterations
             and self.average_error > self.max_average_error
         ):
-            # self.geometry = self.geometry.apply(
-            #     functools.partial(
-            #         self._transform_geometry,
-            #         features=self._cartogram_features
-            #     )
-            # )
             with joblib.Parallel(
                 verbose=(self.verbose * 10),
                 n_jobs=NUM_THREADS,
@@ -291,8 +277,6 @@ class Cartogram(geopandas.GeoDataFrame):
 
                 x += (x0 - cx) * force
                 y += (y0 - cy) * force
-
-        # print(f"    moved vertex by {x0-x}, {y0-y}")
         return [x, y]
 
     def _transform_vertices(self, vertices, features, reduction_factor):

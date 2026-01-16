@@ -1,5 +1,4 @@
 - **1.0.2** (2026-01-16):
-    - BREAKING: require cartogram_attribute to be a positional argument
     - fix inheritance from geopandas.GeoDataFrame
     - update geopandas dependency
 
