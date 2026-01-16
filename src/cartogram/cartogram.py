@@ -44,10 +44,7 @@ class Cartogram(geopandas.GeoDataFrame):
 
         Checks whether or not arguments of the child class are used.
         """
-        if (
-            "cartogram_attribute" in kwargs
-            or isinstance(args[0], (str, pandas.Series))
-        ):
+        if "cartogram_attribute" in kwargs or isinstance(args[0], (str, pandas.Series)):
             df = cls(*args, **kwargs)
         else:
             df = geopandas.GeoDataFrame(*args, **kwargs)
