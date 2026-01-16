@@ -31,11 +31,36 @@ license = {text = "GPL-3.0-or-later"}
 dynamic = ["version"]
 
 [project.optional-dependencies]
-docs = ["folium", "GitPython", "jupyterlab_myst", "mapclassify", "matplotlib",
-        "myst-nb", "nbsphinx", "pybtex-apa7-style", "sphinx", 
-        "sphinx-book-theme", "sphinx-design", "sphinxcontrib-bibtex",
-        "sphinxcontrib-images", "xyzservices"]
-tests = ["pytest", "pytest-cov", "pytest-lazy-fixtures"]
+dev = [
+    "black",
+    "flake8",
+    "flake8-bugbear",
+    "flake8-pyproject",
+    "isort",
+    "pydocstyle",
+    "pylint",
+]
+docs = [
+    "folium",
+    "GitPython",
+    "jupyterlab_myst",
+    "mapclassify",
+    "matplotlib",
+    "myst-nb",
+    "nbsphinx",
+    "pybtex-apa7-style",
+    "sphinx",
+    "sphinx-book-theme",
+    "sphinx-design",
+    "sphinxcontrib-bibtex",
+    "sphinxcontrib-images",
+    "xyzservices",
+]
+tests = [
+    "pytest",
+    "pytest-cov",
+    "pytest-lazy-fixtures",
+]
 
 [project.urls]
 Documentation = "https://python-cartogram.readthedocs.org/"
@@ -43,8 +68,39 @@ Repository = "https://github.com/austromorph/python-cartogram"
 "Change log" =  "https://github.com/austromorph/python-cartogram/blob/main/CHANGELOG.md"
 "Bug tracker" = "https://github.com/austromorph/python-cartogram/issues"
 
+[tool.coverage.paths]
+equivalent_sources = [
+    "src/cartogram/",
+    ".virtualenv/lib/python*/site-packages/cartogram/",
+    "/opt/hostedtoolcache/Python/*/x64/lib/python*/site-packages/cartogram/",
+    "/Library/Frameworks/Python.framework/Versions/*/lib/python*/site-packages/cartogram/",
+    "C:/hostedtoolcache/windows/Python/*/x64/Lib/site-packages/cartogram/"
+]
+
+[tool.coverage.report]
+exclude_also = [
+    'if __name__ == .__main__.:',
+]
+
 [tool.coverage.run]
 omit = ["tests/*", ".virtualenv/**/*"]
+
+[tool.flake8]
+exclude = ["build", "dist", "docs/conf.py", ".virtualenv"]
+extent-ignore = ["E203", "E501", "E701"]
+extent-select = ["B950"]
+max-line-length = 88
+
+[tool.isort]
+profile = "black"
+skip = ["build", "dist", "docs/conf.py", ".virtualenv"]
+
+[tool.pydocstyle]
+#match-dir = "^(src|tests|build_backend).*"
+
+[tool.pylintrc]
+good-names = ["i", "j", "k", "e", "ex", "id", "Run", "_"]
+max-line-length = 88
 
 [tool.pytest.ini_options]
 addopts = "--cov=cartogram --cov-report term-missing --cov-report xml"

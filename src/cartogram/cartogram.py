@@ -13,7 +13,6 @@ import numpy
 import pandas
 import shapely
 
-
 __all__ = ["Cartogram"]
 
 
@@ -39,15 +38,13 @@ class Cartogram(geopandas.GeoDataFrame):
     _constructor_sliced = pandas.Series
 
     @classmethod
-    def _geodataframe_constructor_with_fallback(
-        cls, *args, **kwargs
-    ):
+    def _geodataframe_constructor_with_fallback(cls, *args, **kwargs):
         """
-        A flexible constructor for Cartogram.
+        Provide a flexible constructor for Cartogram.
 
         Checks whether or not arguments of the child class are used.
         """
-        if "cartogram_attribute" in kwargs.keys():
+        if "cartogram_attribute" in kwargs:
             df = cls(*args, **kwargs)
         else:
             df = geopandas.GeoDataFrame(*args, **kwargs)
@@ -131,7 +128,8 @@ class Cartogram(geopandas.GeoDataFrame):
         for geometry_type in geometry_types:
             if geometry_type not in ["MultiPolygon", "Polygon"]:
                 raise ValueError(
-                    f"Only POLYGON or MULTIPOLYGON geometries supported, found {geometry_type}."
+                    "Only POLYGON or MULTIPOLYGON geometries supported, "
+                    f"found {geometry_type}."
                 )
         self._input_is_multipolygon = "MultiPolygon" in geometry_types
 
@@ -179,7 +177,7 @@ class Cartogram(geopandas.GeoDataFrame):
 
         return error
 
-    def _invalidate_cached_properties(self, properties=[]):
+    def _invalidate_cached_properties(self, properties=None):
         """Invalidate properties that were cached as `functools.cached_property`."""
         # https://stackoverflow.com/a/68316608
         if not properties:
@@ -187,7 +185,9 @@ class Cartogram(geopandas.GeoDataFrame):
             # properties = [
             #     attribute
             #     for attribute in self.__dict__.keys()
-            #     if isinstance(getattr(self, attribute, None), functools.cached_property)
+            #     if isinstance(
+            #         getattr(self, attribute, None),
+            #         functools.cached_property)
             # ]
             properties = [
                 attr
@@ -215,7 +215,12 @@ class Cartogram(geopandas.GeoDataFrame):
             self.iteration < self.max_iterations
             and self.average_error > self.max_average_error
         ):
-            # self.geometry = self.geometry.apply(functools.partial(self._transform_geometry, features=self._cartogram_features))
+            # self.geometry = self.geometry.apply(
+            #     functools.partial(
+            #         self._transform_geometry,
+            #         features=self._cartogram_features
+            #     )
+            # )
             with joblib.Parallel(
                 verbose=(self.verbose * 10),
                 n_jobs=NUM_THREADS,
@@ -234,7 +239,8 @@ class Cartogram(geopandas.GeoDataFrame):
             self.iteration += 1
             if self.verbose:
                 print(
-                    f"{self.average_error:0.5f} error left after {self.iteration:d} iteration(s)"
+                    f"{self.average_error:0.5f} error left "
+                    f"after {self.iteration:d} iteration(s)"
                 )
 
         self.geometry = self.geometry.buffer(0.0)
