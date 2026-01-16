@@ -45,7 +45,7 @@ class Cartogram(geopandas.GeoDataFrame):
         """
         A flexible constructor for Cartogram.
 
-        It which checks whether or not arguments of the child class are used.
+        Checks whether or not arguments of the child class are used.
         """
         if "cartogram_attribute" in kwargs.keys():
             df = cls(*args, **kwargs)
