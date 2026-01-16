@@ -13,7 +13,6 @@ import numpy
 import pandas
 import shapely
 
-
 __all__ = ["Cartogram"]
 
 
@@ -33,6 +32,41 @@ CartogramFeature = collections.namedtuple(
 
 class Cartogram(geopandas.GeoDataFrame):
     """Compute continuous cartograms."""
+
+    _constructor = geopandas.GeoDataFrame
+
+    _constructor_sliced = pandas.Series
+
+    @classmethod
+    def _geodataframe_constructor_with_fallback(cls, *args, **kwargs):
+        """
+        Provide a flexible constructor for Cartogram.
+
+        Checks whether or not arguments of the child class are used.
+        """
+        if "cartogram_attribute" in kwargs or isinstance(args[0], (str, pandas.Series)):
+            df = cls(*args, **kwargs)
+        else:
+            df = geopandas.GeoDataFrame(*args, **kwargs)
+            geometry_cols_mask = df.dtypes == "geometry"
+            if len(geometry_cols_mask) == 0 or geometry_cols_mask.sum() == 0:
+                df = pandas.DataFrame(df)
+
+        return df
+
+    _cartogram_attributes = [
+        "cartogram_attribute",
+        "max_iterations",
+        "max_average_error",
+        "verbose",
+    ]
+
+    def __setattr__(self, attr, val):
+        """Catch our own attributes here so we don’t mess with (geo)pandas columns."""
+        if attr in self._cartogram_attributes:
+            object.__setattr__(self, attr, val)
+        else:
+            super().__setattr__(attr, val)
 
     def __init__(
         self,
@@ -107,7 +141,8 @@ class Cartogram(geopandas.GeoDataFrame):
         for geometry_type in geometry_types:
             if geometry_type not in ["MultiPolygon", "Polygon"]:
                 raise ValueError(
-                    f"Only POLYGON or MULTIPOLYGON geometries supported, found {geometry_type}."
+                    "Only POLYGON or MULTIPOLYGON geometries supported, "
+                    f"found {geometry_type}."
                 )
         self._input_is_multipolygon = "MultiPolygon" in geometry_types
 
@@ -155,16 +190,10 @@ class Cartogram(geopandas.GeoDataFrame):
 
         return error
 
-    def _invalidate_cached_properties(self, properties=[]):
+    def _invalidate_cached_properties(self, properties=None):
         """Invalidate properties that were cached as `functools.cached_property`."""
         # https://stackoverflow.com/a/68316608
         if not properties:
-            # # clear all as default
-            # properties = [
-            #     attribute
-            #     for attribute in self.__dict__.keys()
-            #     if isinstance(getattr(self, attribute, None), functools.cached_property)
-            # ]
             properties = [
                 attr
                 for attr in list(self.__dict__.keys())
@@ -191,7 +220,6 @@ class Cartogram(geopandas.GeoDataFrame):
             self.iteration < self.max_iterations
             and self.average_error > self.max_average_error
         ):
-            # self.geometry = self.geometry.apply(functools.partial(self._transform_geometry, features=self._cartogram_features))
             with joblib.Parallel(
                 verbose=(self.verbose * 10),
                 n_jobs=NUM_THREADS,
@@ -210,7 +238,8 @@ class Cartogram(geopandas.GeoDataFrame):
             self.iteration += 1
             if self.verbose:
                 print(
-                    f"{self.average_error:0.5f} error left after {self.iteration:d} iteration(s)"
+                    f"{self.average_error:0.5f} error left "
+                    f"after {self.iteration:d} iteration(s)"
                 )
 
         self.geometry = self.geometry.buffer(0.0)
@@ -248,8 +277,6 @@ class Cartogram(geopandas.GeoDataFrame):
 
                 x += (x0 - cx) * force
                 y += (y0 - cy) * force
-
-        # print(f"    moved vertex by {x0-x}, {y0-y}")
         return [x, y]
 
     def _transform_vertices(self, vertices, features, reduction_factor):

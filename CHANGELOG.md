@@ -1,3 +1,7 @@
+- **1.0.2** (2026-01-16):
+    - fix inheritance from geopandas.GeoDataFrame
+    - update geopandas dependency
+
 - **1.0.1** (2025-06-27):
     - workaround for change in geopandas inheritance
 

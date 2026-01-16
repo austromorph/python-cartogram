@@ -14,7 +14,6 @@ import pathlib
 import geopandas
 import pytest
 
-
 DATA_DIRECTORY = pathlib.Path(__file__).resolve().parent / "data"
 AUSTRIA_NUTS2_POPULATION = DATA_DIRECTORY / "Austria_PopulationByNUTS2.geojson"
 AUSTRIA_NUTS2_POPULATION_CARTOGRAM = (
