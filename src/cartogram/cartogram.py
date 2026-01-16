@@ -44,7 +44,10 @@ class Cartogram(geopandas.GeoDataFrame):
 
         Checks whether or not arguments of the child class are used.
         """
-        if "cartogram_attribute" in kwargs:
+        if (
+            "cartogram_attribute" in kwargs
+            or isinstance(args[0], (str, pandas.Series))
+        ):
             df = cls(*args, **kwargs)
         else:
             df = geopandas.GeoDataFrame(*args, **kwargs)
@@ -54,10 +57,23 @@ class Cartogram(geopandas.GeoDataFrame):
 
         return df
 
+    _cartogram_attributes = [
+        "cartogram_attribute",
+        "max_iterations",
+        "max_average_error",
+        "verbose",
+    ]
+
+    def __setattr__(self, attr, val):
+        """Catch our own attributes here so we don’t mess with (geo)pandas columns."""
+        if attr in self._cartogram_attributes:
+            object.__setattr__(self, attr, val)
+        else:
+            super().__setattr__(attr, val)
+
     def __init__(
         self,
         input_polygon_geodataframe,
-        /,
         cartogram_attribute,
         max_iterations=10,
         max_average_error=0.1,
